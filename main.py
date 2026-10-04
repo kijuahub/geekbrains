@@ -1,5 +1,5 @@
 import os
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, redirect, url_for
 from database import db
 from models import Task
 
@@ -10,6 +10,7 @@ db.init_app(app)
 
 with app.app_context():
     db.create_all()
+
 
 @app.route("/")
 def index():
@@ -22,12 +23,10 @@ def index():
 @app.route("/add", methods=["POST"])
 def add_task():
     content = request.form.get("content", "").strip()
-    if not content:
-        return jsonify({"success": False}), 400
-    task = Task(content=content)
-    db.session.add(task)
-    db.session.commit()
-    return jsonify({"success": True, "id": task.id, "content": task.content})
+    if content:
+        db.session.add(Task(content=content))
+        db.session.commit()
+    return redirect(url_for("index"))
 
 
 @app.route("/toggle/<int:task_id>", methods=["POST"])
@@ -35,7 +34,7 @@ def toggle_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.completed = not task.completed
     db.session.commit()
-    return jsonify({"success": True, "completed": task.completed})
+    return redirect(url_for("index"))
 
 
 @app.route("/delete/<int:task_id>", methods=["POST"])
@@ -43,7 +42,7 @@ def delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.deleted = True
     db.session.commit()
-    return jsonify({"success": True, "content": task.content})
+    return redirect(url_for("index"))
 
 
 @app.route("/restore/<int:task_id>", methods=["POST"])
@@ -51,7 +50,7 @@ def restore_task(task_id):
     task = Task.query.get_or_404(task_id)
     task.deleted = False
     db.session.commit()
-    return jsonify({"success": True, "content": task.content})
+    return redirect(url_for("index"))
 
 
 @app.route("/hard_delete/<int:task_id>", methods=["POST"])
@@ -59,7 +58,7 @@ def hard_delete_task(task_id):
     task = Task.query.get_or_404(task_id)
     db.session.delete(task)
     db.session.commit()
-    return jsonify({"success": True})
+    return redirect(url_for("index"))
 
 
 if __name__ == "__main__":

@@ -3,67 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>ToDo</title>
-    <link rel="stylesheet" href="../static/styles.css"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}"/>
 </head>
 <body>
     <div class="app-container">
-        <div class="header-row">
-            <h1>Список дел</h1>
-            <button type="button" id="theme-toggle" aria-label="Переключить тему">🌙</button>
-        </div>
+        <h1>Список дел</h1>
 
-        <form id="add-task-form" class="form-group">
+        <form action="{{ url_for('add_task') }}" method="post" class="form-group">
             <input type="text" name="content" placeholder="Введите задачу" required>
             <button type="submit" class="btn-primary">Добавить</button>
         </form>
 
         <h2>Активные</h2>
-        <ul id="active-tasks">
+        <ul>
             {% for task in active_tasks %}
-            <li data-id="{{ task.id }}">
-                <div class="task-content">
-                    <input type="checkbox" onchange="toggleTask(this, {{ task.id }})">
-                    <span class="task-text">{{ task.content }}</span>
-                </div>
+            <li>
+                <span class="task-text">{{ task.content }}</span>
                 <div class="actions">
-                    <button type="button" class="btn-delete" onclick="softDeleteTask(this, {{ task.id }})">Удалить</button>
+                    <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-done">Готово</button>
+                    </form>
+                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-delete">Удалить</button>
+                    </form>
                 </div>
             </li>
+            {% else %}
+            <li class="empty">Нет активных задач</li>
             {% endfor %}
-            <li id="empty-msg" style="display: {% if active_tasks %}none{% else %}flex{% endif %}; justify-content: center; color: var(--text-muted); background: transparent; border: none;">Нет активных задач</li>
         </ul>
 
         <h2>Выполненные</h2>
-        <ul id="completed-tasks">
+        <ul>
             {% for task in completed_tasks %}
-            <li data-id="{{ task.id }}" class="completed">
-                <div class="task-content">
-                    <input type="checkbox" checked onchange="toggleTask(this, {{ task.id }})">
-                    <span class="task-text">{{ task.content }}</span>
-                </div>
+            <li class="completed">
+                <span class="task-text">{{ task.content }}</span>
                 <div class="actions">
-                    <button type="button" class="btn-delete" onclick="softDeleteTask(this, {{ task.id }})">Удалить</button>
+                    <form action="{{ url_for('toggle_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-restore">Вернуть</button>
+                    </form>
+                    <form action="{{ url_for('delete_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-delete">Удалить</button>
+                    </form>
                 </div>
             </li>
             {% endfor %}
         </ul>
 
         <h2>Недавно удаленные</h2>
-        <ul id="deleted-tasks">
+        <ul>
             {% for task in deleted_tasks %}
-            <li data-id="{{ task.id }}">
-                <div class="task-content">
-                    <span class="task-text" style="color: var(--text-muted);">{{ task.content }}</span>
-                </div>
+            <li>
+                <span class="task-text muted">{{ task.content }}</span>
                 <div class="actions">
-                    <button type="button" class="btn-restore" onclick="restoreTask(this, {{ task.id }})">Восстановить</button>
-                    <button type="button" class="btn-delete" onclick="hardDeleteTask(this, {{ task.id }})">Навсегда</button>
+                    <form action="{{ url_for('restore_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-restore">Восстановить</button>
+                    </form>
+                    <form action="{{ url_for('hard_delete_task', task_id=task.id) }}" method="post">
+                        <button type="submit" class="btn-delete">Навсегда</button>
+                    </form>
                 </div>
             </li>
             {% endfor %}
         </ul>
     </div>
-
-    <script src="../static/script.js"></script>
 </body>
 </html>
